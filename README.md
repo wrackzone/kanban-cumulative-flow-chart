@@ -1,4 +1,4 @@
-kanbancumulativeflowchart
+kanban-cumulative-flow-chart
 =========================
 
 ## Overview
