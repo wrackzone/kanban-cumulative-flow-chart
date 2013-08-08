@@ -1,3 +1,6 @@
+    // <script type="text/javascript" src="https://rally1.rallydev.com/apps/2.0rc1/sdk-debug.js"></script>
+    // <script type="text/javascript" src="https://rally1.rallydev.com/apps/2.0rc1/lib/analytics/analytics-all.js"></script>
+
 
 Rally.onReady(function () {
         
@@ -14,7 +17,9 @@ Rally.onReady(function () {
         	var fieldName = 'c_KanbanState';
         	var that = this;
 			_.each(that.values,function(value) {
-				var s = "return snapshot['"+fieldName+"'] == '" + value + "' ? 1 : 0;";
+				//var s = "return snapshot['"+fieldName+"'] == '" + value + "' ? 1 : 0;";
+                //var e = defined( snapshot['PlanEstimate']) ? snapshot['PlanEstimate'] : 0;
+                var s = "return snapshot['"+fieldName+"'] == '" + value + "' ? (snapshot['PlanEstimate']!=null?snapshot['PlanEstimate']:0) : 0;";
 				var fn = new Function("snapshot",s);
     			dfs.push({
         			as : value,
@@ -22,6 +27,9 @@ Rally.onReady(function () {
        	   		});
      	    });
 			return dfs;
+        },
+        defined : function(v) {
+            return (!_.isUndefined(v) && !_.isNull(v));            
         }
      	,
         getMetrics: function() {
@@ -47,14 +55,26 @@ Rally.onReady(function () {
             var today = new Date(),
                 timePeriod = new Date(today - TIME_PERIOD_IN_MILLIS);
 
-            this.chartConfig.storeConfig.find['Project'] = this.getContext().getProject().ObjectID;
+            //this.chartConfig.storeConfig.find['Project'] = this.getContext().getProject().ObjectID;
             this.chartConfig.storeConfig.find['_ValidFrom'] = {
                 "$gt": timePeriod.toISOString()
             };
+            this.chartConfig.context = this.getContext();
             this.chartConfig.chartConfig.title = {
                 text: this.getContext().getProject().Name + " Cumulative Flow Diagram"
             };
 
+            this.getContext().projectScopeDown = true;
+            //this.chartConfig.context = this.getContext();
+            // this.chartConfig.storeConfig.context = {
+            //     workspace: '/workspace/41529001',
+            //     project: '/project/10823784037',
+            //     projectScopeUp: false,
+            //     projectScopeDown: true
+            // };
+            // /project/10823784037
+            // /workspace/41529001
+            
             this.add(this.chartConfig);
         },
 
@@ -62,6 +82,7 @@ Rally.onReady(function () {
                 xtype: 'rallychart',
 
                 storeConfig: {
+                    limit : Infinity,
                 	find : {
                         '_TypeHierarchy': { '$in' : ['HierarchicalRequirement','Defect']},
                         'Children': null
@@ -91,7 +112,7 @@ Rally.onReady(function () {
                     yAxis: [
                         {
                             title: {
-                                text: 'Count'
+                                text: 'Points'
                             }
                         }
                     ],
